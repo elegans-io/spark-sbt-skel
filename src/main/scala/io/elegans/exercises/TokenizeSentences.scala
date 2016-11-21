@@ -38,7 +38,7 @@ object TokenizeSentences {
          token <- sentence.get(classOf[TokensAnnotation])) {
       val lemma = token.getString(classOf[LemmaAnnotation])
       val lc_lemma = lemma.toLowerCase
-      if (lc_lemma.length > 2 && !stopWords.contains(lc_lemma) && isOnlyLetters(lc_lemma)) {
+      if (!stopWords.contains(lc_lemma) && isOnlyLetters(lc_lemma)) {
         lemmas += lc_lemma.toLowerCase
       }
     }
@@ -57,10 +57,10 @@ object TokenizeSentences {
 
     val inputfile = sc.textFile(params.input).map(_.trim)
 
-    val stopWords: Set[String] = params.stopwordsFile match {
+    val stopWords = params.stopwordsFile match {
       case Some(stopwordsFile) => sc.broadcast(scala.io.Source.fromFile(stopwordsFile)
-        .getLines().map(_.trim).toSet).value
-      case None => Set.empty
+        .getLines().map(_.trim).toSet)
+      case None => sc.broadcast(Set.empty)
     }
 
     val tokenizedSentences : RDD[Tuple2[String, List[String]]]= inputfile.zipWithIndex.map( line => {
@@ -69,7 +69,7 @@ object TokenizeSentences {
       try {
         val pipeline = createNLPPipeline()
         val doc_lemmas : Tuple2[String, List[String]] =
-          (id, plainTextToLemmas(s, stopWords, pipeline))
+          (id, plainTextToLemmas(s, stopWords.value.toSet, pipeline))
         doc_lemmas
       } catch {
         case e: Exception => Tuple2(id, List.empty[String])
@@ -92,6 +92,10 @@ object TokenizeSentences {
         .text(s"the destination directory for the output" +
           s"  default: ${defaultParams.output}")
         .action((x, c) => c.copy(output = x))
+      opt[String]("stopwordFile")
+        .text(s"filepath for a list of stopwords. Note: This must fit on a single machine." +
+          s"  default: ${defaultParams.stopwordsFile}")
+        .action((x, c) => c.copy(stopwordsFile = Option(x)))
     }
 
     parser.parse(args, defaultParams) match {

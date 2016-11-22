@@ -35,8 +35,16 @@ e.g.
 ./scripts/run.sh io.elegans.exercises.TokenizeSentences --input sentences.utf8.clean.txt  --output TOKENIZED
 ```
 
-#### generation of a fat jar:
+#### generation of a fat jar
 
+```bash
 export JAVA_OPTS="-Xms256m -Xmx4g"
 sbt assembly
+```
+
+### run the program using the fat jar
+
+```bash
+spark-submit --driver-memory 8g --class io.elegans.exercises.TokenizeSentences ./target/scala-2.11/exercises-assembly-0.1.jar  --help
+```
 

@@ -14,6 +14,7 @@ import scala.collection.JavaConversions._
 
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
+import org.apache.spark.mllib.linalg.{Vector, Vectors}
 
 object TokenizeSentences {
 

@@ -35,3 +35,8 @@ e.g.
 ./scripts/run.sh io.elegans.exercises.TokenizeSentences --input sentences.utf8.clean.txt  --output TOKENIZED
 ```
 
+#### generation of a fat jar:
+
+export JAVA_OPTS="-Xms256m -Xmx4g"
+sbt assembly
+

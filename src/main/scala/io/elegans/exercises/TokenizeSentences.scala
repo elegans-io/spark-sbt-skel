@@ -2,15 +2,7 @@ package io.elegans.exercises
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
-import scala.collection.mutable.ArrayBuffer
 import scopt.OptionParser
-
-/* import core nlp */
-import edu.stanford.nlp.pipeline._
-import edu.stanford.nlp.ling.CoreAnnotations._
-/* these are necessary since core nlp is a java library */
-import java.util.Properties
-import scala.collection.JavaConversions._
 
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
@@ -18,33 +10,7 @@ import org.apache.spark.mllib.linalg.{Vector, Vectors}
 
 object TokenizeSentences {
 
-  def createNLPPipeline(): StanfordCoreNLP = {
-    val props = new Properties()
-    props.setProperty("annotators", "tokenize, ssplit, pos, lemma")
-    val pipeline: StanfordCoreNLP = new StanfordCoreNLP(props)
-    pipeline
-  }
-
-  def isOnlyLetters(str: String): Boolean = {
-    str.forall(c => Character.isLetter(c))
-  }
-
-  def plainTextToLemmas(text: String, stopWords: Set[String],
-                        pipeline: StanfordCoreNLP): List[String] = {
-    val doc: Annotation = new Annotation(text)
-    pipeline.annotate(doc)
-    val lemmas = new ArrayBuffer[String]()
-    val sentences = doc.get(classOf[SentencesAnnotation])
-    for (sentence <- sentences;
-         token <- sentence.get(classOf[TokensAnnotation])) {
-      val lemma = token.getString(classOf[LemmaAnnotation])
-      val lc_lemma = lemma.toLowerCase
-      if (!stopWords.contains(lc_lemma) && isOnlyLetters(lc_lemma)) {
-        lemmas += lc_lemma.toLowerCase
-      }
-    }
-    lemmas.toList
-  }
+  lazy val textProcessingPipeline = new TextProcessingUtils
 
   private case class Params(
     input: String = "sentences.txt",
@@ -68,9 +34,9 @@ object TokenizeSentences {
       val s = line._1
       val id = line._2.toString
       try {
-        val pipeline = createNLPPipeline()
+        val pipeline = textProcessingPipeline.createNLPPipeline()
         val doc_lemmas : Tuple2[String, List[String]] =
-          (id, plainTextToLemmas(s, stopWords.value.toSet, pipeline))
+          (id, textProcessingPipeline.plainTextToLemmas(s, stopWords.value.toSet, pipeline))
         doc_lemmas
       } catch {
         case e: Exception => Tuple2(id, List.empty[String])

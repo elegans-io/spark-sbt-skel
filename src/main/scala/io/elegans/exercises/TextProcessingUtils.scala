@@ -1,6 +1,7 @@
 package io.elegans.exercises
 
 import scala.collection.mutable.ArrayBuffer
+import org.apache.spark.broadcast.Broadcast
 
 /* import core nlp */
 import edu.stanford.nlp.pipeline._
@@ -12,6 +13,10 @@ import scala.collection.JavaConversions._
 
 class TextProcessingUtils {
 
+  /** Instantiate a StanfordCoreNLP pipeline
+    *
+    * @return an instance of StanfordCoreNLP
+    */
   def createNLPPipeline(): StanfordCoreNLP = {
     val props = new Properties()
     props.setProperty("annotators", "tokenize, ssplit, pos, lemma")
@@ -19,11 +24,23 @@ class TextProcessingUtils {
     pipeline
   }
 
+  /** check if a string is only made by letters
+    *
+    * @param str the input string
+    * @return true if the string is only letters, otherwise false
+    */
   def isOnlyLetters(str: String): Boolean = {
     str.forall(c => Character.isLetter(c))
   }
 
-  def plainTextToLemmas(text: String, stopWords: Set[String],
+  /** tokenize a string, optionally remove stopwords using StanfordCoreNLP
+    *
+    * @param text the input text
+    * @param stopWords the set with stopwords
+    * @param pipeline the instance of StanfordCoreNLP
+    * @return a List of lowercase token
+    */
+  def plainTextToLemmas(text: String, stopWords: Broadcast[Set[String]],
                         pipeline: StanfordCoreNLP): List[String] = {
     val doc: Annotation = new Annotation(text)
     pipeline.annotate(doc)
@@ -33,7 +50,7 @@ class TextProcessingUtils {
          token <- sentence.get(classOf[TokensAnnotation])) {
       val lemma = token.getString(classOf[LemmaAnnotation])
       val lc_lemma = lemma.toLowerCase
-      if (!stopWords.contains(lc_lemma) && isOnlyLetters(lc_lemma)) {
+      if (!stopWords.value.contains(lc_lemma) && isOnlyLetters(lc_lemma)) {
         lemmas += lc_lemma.toLowerCase
       }
     }

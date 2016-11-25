@@ -12,11 +12,8 @@ class TermVectors {
     * @return the cosine between the two input vectors
     */
   def cosineSimilarity(first_vector: SparseVector, second_vector: SparseVector) : Double = {
-    val values = first_vector.toDense.toArray.zip(second_vector.toDense.toArray).map(x => {
-      (x._1 * x._2, scala.math.pow(x._1, 2), scala.math.pow(x._2, 2))
-    }).reduce((vector_A, vector_B) =>
-      (vector_A._1 + vector_B._1, vector_A._2 + vector_B._2, vector_A._3 + vector_B._3))
-    val cs = values._1 / (scala.math.sqrt(values._2) * scala.math.sqrt(values._3))
+    //TODO: calculate the cosine similarity, transform the Sparse vector to Array
+    val cs = 0.0 //TODO: replace with the cosine similarity between the two vectors
     cs
   }
 
@@ -34,12 +31,11 @@ class TermVectors {
                              dictionary: Broadcast[Map[String, Tuple2[Long, Long]]],
                              stopWords: Broadcast[Set[String]]
                             ): SparseVector = {
-    val array_values : Seq[(Int, Double)] = doc_tfifd_terms.map(term => {
-      val term_id : Int = dictionary.value.filter(x => ! stopWords.value.contains(x._1))
-        .getOrElse(term._1, (-1: Long, -1: Long))._1.toInt
-      val weight : Double = term._2._4
+    val array_values : Seq[(Int, Double)] = doc_tfifd_terms.map(term => { /* map to all terms of the document */
+      val term_id : Int = 0 //TODO: get the term id from dictionary
+      val weight : Double = 0.0 //TODO: replace with the tfidf
       (term_id, weight)
-    }).filter(_._1 != -1).toSeq
+    }).toSeq //TODO: filter elements with invalid id (not found on dictionary)
     val v : SparseVector = Vectors.sparse(dictionary.value.size, array_values).toSparse
     v
   }

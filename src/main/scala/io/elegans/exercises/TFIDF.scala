@@ -14,10 +14,8 @@ class TFIDF {
     */
   private def calcTermTfIdf(num_of_documents: Long, term_raw_freq: Long, max_term_raw_freq : Long,
                             num_docs_with_terms: Long): Double = {
-    val tf : Double = 0.5 + 0.5 * ((term_raw_freq: Double)/max_term_raw_freq)
-    assert(tf > 0)
-    val idf : Double = math.log((num_of_documents: Double)/(1 + num_docs_with_terms))
-    assert(idf > 0)
+    val tf : Double = 0.0 //TODO: calculate tf
+    val idf : Double = 0.0 //TODO: calculate idf
     val tfidf : Double = tf * idf
     tfidf
   }
@@ -35,23 +33,15 @@ class TFIDF {
                               dictionary: => Broadcast[Map[String, (Long, Long)]], num_of_documents: Long) :
   Map[String, Tuple4[Long, Long, Long, Double]] = {
     val freq_annotations = annotated_sentence
-    val max_term_raw_freq: Long = if (freq_annotations.isEmpty) {
-      0
-    } else {
-      freq_annotations.maxBy(_._2)._2
-    }
-    val tfidf_annotated_terms: Map[String, Tuple4[Long, Long, Long, Double]] =
-      freq_annotations.map(term => {
-        val term_string = term._1
-        val term_raw_freq = term._2
-        val dictionary_term: Tuple2[Long, Long] =
-          dictionary.value.getOrElse(term_string, (0: Long, 0: Long))
-        val term_id = dictionary_term._1
-        val num_docs_with_terms = dictionary_term._2
-        val term_tfidf = calcTermTfIdf(num_of_documents = num_of_documents,
-          term_raw_freq = term_raw_freq,
-          max_term_raw_freq = max_term_raw_freq,
-          num_docs_with_terms = num_docs_with_terms)
+    val max_term_raw_freq: Long = 0 //TODO: get the max raw frequency from the list of terms
+    val tfidf_annotated_terms: Map[String, Tuple4[Long, Long, Long, Double]] = // map on terms of the sentence
+      freq_annotations.map(term => { // maps on terms annotations
+        val term_string : String = "" //TODO: complete with the term string
+        val term_raw_freq : Long = 0 //TODO: complete with term raw frequency in sentence
+        val dictionary_term: Tuple2[Long, Long] = (0: Long, 0: Long) //TODO: get the pair (unique_id, num_docs_with_terms) from dictionary
+        val term_id : Long = 0 //TODO: the term unique id
+        val num_docs_with_terms : Long = 0 //TODO: the term num_docs_with_terms
+        val term_tfidf : Double = 0 //TODO: the tfidf
         val dictionary_term_with_tfidf = (term_string, (term_raw_freq, term_id, num_docs_with_terms, term_tfidf))
         dictionary_term_with_tfidf
       })

@@ -5,7 +5,6 @@ import org.apache.spark.SparkConf
 
 import scopt.OptionParser
 
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
 
 object AnnotateWithTFIDF {
@@ -26,31 +25,23 @@ object AnnotateWithTFIDF {
 
     val inputfile = sc.textFile(params.input).map(_.trim)
 
-    val stopWords = params.stopwordsFile match {
-      case Some(stopwordsFile) => sc.broadcast(scala.io.Source.fromFile(stopwordsFile)
-        .getLines().map(_.trim).toSet)
-      case None => sc.broadcast(Set.empty[String])
-    }
+    val stopWords = sc.broadcast(Set.empty[String]) //TODO: load stopwords
 
-    /* process the lines of the input file, assigning to each line a progressive ID*/
-    val tokenizedSentences : RDD[Tuple2[String, List[String]]] = inputfile.zipWithIndex.map( line => {
-      val original_string = line._1 /* the original string as is on file */
-      val id = line._2.toString /* the unique sentence id converted to string */
-      val token_list = textProcessingUtils.tokenizeSentence(original_string, stopWords)
-      (id, token_list)
-    })
+    /* process the lines of the input file, assigning to each line a progressive ID */
+    val tokenizedSentences : RDD[Tuple2[String, List[String]]] = sc.parallelize(List.empty) //TODO: complete with tokens
 
     /* list of documents with word raw frequency annotation (doc_text, frequencies_per_token) */
     val wordsRawFreqInDocuments = tokenizedSentences.map(item => {
-      val word_count = item._2.groupBy(identity).mapValues(_.length : Long).toSeq
+      val word_count : Seq[Tuple2[String, Long]] = Seq.empty //TODO: replace value with word count
       val doc = (item._1, word_count)
       doc
     })
 
     /* list of terms with id and occurrence in documents (term, (term_id, occurrence)) */
-    val wordOccurrenceInDocs : RDD[Tuple2[String, Tuple2[Long, Long]]] = wordsRawFreqInDocuments.map(_._2)
-      .flatMap(s => s.map(x => (x._1, 1 : Long))) // apply a function (like map) then flatten
-      .reduceByKey((a, b) => {a + b}).sortByKey(ascending = true).zipWithIndex.map(x => {(x._1._1, (x._2, x._1._2))})
+    //TODO: replace the value of wordOccurrenceInDocs with the list of terms, term id and num of documents where the term occur
+    //TODO: use the function flatMap to prepare the data create (term, 1), then reduceByKey
+    //TODO: sort the results by frequency (ascending order) and assign a unique id to each term
+    val wordOccurrenceInDocs : RDD[Tuple2[String, Tuple2[Long, Long]]] = sc.parallelize(List.empty)
 
     /* broadcast the dictionary */
     val dictionary_map : Map[String, Tuple2[Long, Long]] = wordOccurrenceInDocs.collectAsMap().toMap
@@ -58,7 +49,7 @@ object AnnotateWithTFIDF {
     val dictionary_size = dictionary_map.size
 
     val num_of_documents = wordsRawFreqInDocuments.count()
-    println("Number of documents: " + num_of_documents)
+    println("Total number of documents: " + num_of_documents)
 
     /* annotate documents with tf-idf
       in: (doc_id, frequencies_per_token)
@@ -69,18 +60,20 @@ object AnnotateWithTFIDF {
       query_tfidf_annotated_terms
     })
 
+
     if (params.binary) {
       val dictionary_path = params.output + "/" + "DICTIONARY_BIN"
-      wordOccurrenceInDocs.saveAsObjectFile(dictionary_path)
+      //TODO: add a function to serialize wordOccurrenceInDocs as a binary object on dictionary_path
 
       val annotated_documents_path = params.output + "/" + "DOCUMENTS_BIN"
-      tfidAnnotatedDocuments.saveAsObjectFile(annotated_documents_path)
+      //TODO: add a function to serialize tfidAnnotatedDocuments as a binary object on annotated_documents_path
     } else {
       val dictionary_path = params.output + "/" + "DICTIONARY"
+      //TODO: add a function to serialize wordOccurrenceInDocs in text format on dictionary_path
       wordOccurrenceInDocs.saveAsTextFile(dictionary_path)
 
       val annotated_documents_path = params.output + "/" + "DOCUMENTS"
-      tfidAnnotatedDocuments.saveAsTextFile(annotated_documents_path)
+      //TODO: add a function to serialize tfidAnnotatedDocuments in text format on annotated_documents_path
     }
   }
 

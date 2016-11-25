@@ -25,31 +25,23 @@ object GenerateSentenceVectors {
 
     val sc = new SparkContext(conf)
 
-    val stopWords = params.stopwordsFile match {
-      case Some(stopwordsFile) => sc.broadcast(scala.io.Source.fromFile(stopwordsFile)
-        .getLines().map(_.trim).toSet)
-      case None => sc.broadcast(Set.empty[String])
-    }
+    //TODO: load stopwords
 
-    /* (docid, Map((term_string, (term_raw_freq, term_id, term_occurrence_in_docs, term_tfidf)))) */
-    val annotatedDocs : RDD[(String, Map[String, Tuple4[Long, Long, Long, Double]])] = sc.objectFile(params.input)
+    //TODO: load binary object with tokenized documents with TFIDF annotations (AnnotateWithTFIDF)
 
     /* (term, (term_id, #docs_where_term_occurs)) */
-    val dictionaryRDD : RDD[(String, (Long, Long))] = sc.objectFile(params.dictionary)
-    val dictionaryMap : Map[String, (Long, Long)] = dictionaryRDD.collectAsMap.toMap
-    val dictionary = sc.broadcast(dictionaryMap)
+    //TODO: load object file with the RDD containing the terms dictionary (AnnotateWithTFIDF)
+    //TODO: convert the RDD dictionary into a Map[String, (Long, Long)]
+    //TODO: broadcast the dictionary
 
-    val docVectors : RDD[(String, SparseVector)] = annotatedDocs.map(doc => {
-      val vector : SparseVector = termVectors.generateVector(doc._2, dictionary, stopWords)
-      (doc._1, vector)
-    })
+    //TODO: generate an RDD[(String, SparseVector)] with the list of (<doc_id>, vector)
 
     if (params.binary) {
-      val output = params.output + "/" + "DOCVECTORS_BIN"
-      docVectors.saveAsObjectFile(output)
+      val output_path = params.output + "/" + "DOCVECTORS_BIN"
+      //TODO: save the RDD with vectorized sentence as a binary object in output_path
     } else {
-      val output = params.output + "/" + "DOCVECTORS"
-      docVectors.saveAsTextFile(output)
+      val output_path = params.output + "/" + "DOCVECTORS"
+      //TODO: save the RDD with vectorized sentence as a textFile in output_path
     }
   }
 

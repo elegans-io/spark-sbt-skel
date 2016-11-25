@@ -10,10 +10,6 @@ import org.apache.spark.mllib.linalg.SparseVector
 
 object SearchSentenceVectors {
 
-  lazy val tokenizeSentence = new TextProcessingUtils
-  lazy val tfIdf = new TFIDF
-  lazy val termVectors = new TermVectors
-
   private case class Params(
     input: String = "TFIDF/DOCUMENTS_BIN",
     dictionary: String = "TFIDF/DICTIONARY_BIN",
@@ -24,42 +20,29 @@ object SearchSentenceVectors {
     binary: Boolean = false)
 
   private def doSearchVectors(params: Params) {
-    val conf = new SparkConf().setAppName("SearchOnSentenceVectors")
 
-    val sc = new SparkContext(conf)
+    //TODO: initialization of SparkConf and SparkContext
 
-    val stopWords = params.stopwordsFile match {
-      case Some(stopwordsFile) => sc.broadcast(scala.io.Source.fromFile(stopwordsFile)
-        .getLines().map(_.trim).toSet)
-      case None => sc.broadcast(Set.empty[String])
-    }
+    //TODO: loading stopwords
 
-    /* (docid, sentence_vector) */
-    val annotatedDocs : RDD[(String, SparseVector)] = sc.objectFile(params.input)
+    //TODO: loading of the binary RDD with (<doc_id>, <sparse_vector>), see GenerateSentenceVectors
 
-    /* (term, (term_id, #docs_where_term_occurs)) */
-    val dictionaryRDD : RDD[(String, (Long, Long))] = sc.objectFile(params.dictionary)
-    val dictionaryMap : Map[String, (Long, Long)] = dictionaryRDD.collectAsMap.toMap
-    val dictionary = sc.broadcast(dictionaryMap)
+    //TODO: loading terms dictionary, conver to map and variable broadcasting
 
-    val num_of_documents : Long = annotatedDocs.count()
+    //TODO: create a variable with the count the documents, will be used to create the vector of the query
 
-    val query = params.query
-    val threshold = params.threshold
-    val query_tokens = tokenizeSentence.tokenizeSentence(query, stopWords)
-    val query_word_count = query_tokens.groupBy(identity).mapValues(_.length : Long)
+    //TODO: tokenize the query
 
-    val query_tfidf_annotated_terms = tfIdf.getTfIDFAnnotatedVector(query_word_count, dictionary, num_of_documents)
+    //TODO: create a variable with word count for the query
 
-    val query_vector : SparseVector = termVectors.generateVector(doc_tfifd_terms = query_tfidf_annotated_terms,
-      dictionary = dictionary, stopWords = stopWords)
+    //TODO: create a variable for TFIDF of the query (see TextProcessingUtils.getTfIDFAnnotatedVector)
 
-    val results = annotatedDocs.map(doc => {
-      val cosine : Double = termVectors.cosineSimilarity(doc._2, query_vector)
-      (doc._1, cosine)
-    }).filter(_._2 > threshold).sortBy(_._2, ascending = false)
+    //TODO: create a vector for the query (see TermVector.generateVector)
 
-    results.saveAsTextFile(params.output)
+    //TODO: map over the vectors of document, and calculate the cosine vector similarity between the vector and the query
+    //TODO: filter the results by removing terms with score below the threshold, then sort by rank in descending order
+
+    //TODO: write the results in binary and textual format
   }
 
   def main(args: Array[String]) {

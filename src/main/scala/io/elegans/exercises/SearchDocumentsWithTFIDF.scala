@@ -2,9 +2,8 @@ package io.elegans.exercises
 
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkConf
-
+import org.apache.spark.broadcast.Broadcast
 import scopt.OptionParser
-
 import org.apache.spark.rdd.RDD
 
 object SearchDocumentsWithTFIDF {
@@ -34,13 +33,13 @@ object SearchDocumentsWithTFIDF {
 
     val query = params.query
     val threshold = params.threshold
-    val query_tokens = sc.broadcast(textProcessingUtils.tokenizeSentence(query, stopWords))
+    val query_tokens : Broadcast[List[String]] = sc.broadcast(List.empty) //TODO: replace with the tokenized query
 
     val search_result = annotatedDocs.map( sentence => {
-      val doc_id = sentence._1
-      val weighted_terms = sentence._2
-      val query_terms = query_tokens.value
-      val score = query_terms.map(q_term => {weighted_terms.getOrElse(q_term, (0, 0, 0, 0.0))}).map(_._4).sum
+      val doc_id = "xxx" //TODO: replace with the document id
+      val weighted_terms : Map[String, Tuple4[Long, Long, Long, Double]] = Map.empty //TODO: replace with map (term -> annotations)
+      val query_terms : List[String] = List.empty //TODO: replace with the list of query tokens
+      val score : Double = 0.0 //TODO: sum the TFIDF term score for each term of the query which match with the sentence
       (doc_id, score)
     }).filter(_._2 >= threshold).sortBy(_._2, ascending = false)
 

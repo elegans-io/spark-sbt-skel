@@ -36,7 +36,7 @@ class TextProcessingUtils {
   /** tokenize a string, optionally remove stopwords using StanfordCoreNLP
     *
     * @param text the input text
-    * @param stopWords the set with stopwords
+    * @param stopWords the set of stopwords
     * @param pipeline the instance of StanfordCoreNLP
     * @return a List of lowercase token
     */
@@ -55,6 +55,23 @@ class TextProcessingUtils {
       }
     }
     lemmas.toList
+  }
+
+  /** tokenize a sentence
+    *
+    * @param text the input string
+    * @param stopWords the set of stopwords
+    * @return a list of tokens
+    */
+  def tokenizeSentence(text: String, stopWords: Broadcast[Set[String]]): List[String] = {
+    try {
+      val pipeline = createNLPPipeline() /* get an instance of the NLP pipeline */
+      val doc_lemmas : List[String] =  /* call the tokenization function */
+        plainTextToLemmas(text, stopWords, pipeline)
+      doc_lemmas /* return the original sentence annotated with tokens */
+    } catch {
+      case e: Exception => List.empty[String]
+    }
   }
 
 }

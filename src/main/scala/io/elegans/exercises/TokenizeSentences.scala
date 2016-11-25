@@ -9,7 +9,7 @@ import org.apache.spark.rdd.RDD
 /** Read a list of sentences and generate a list of token */
 object TokenizeSentences {
 
-  lazy val textProcessingPipeline = new TextProcessingUtils /* lazy initialization of TextProcessingUtils class */
+  lazy val textProcessingUtils = new TextProcessingUtils /* lazy initialization of TextProcessingUtils class */
 
   /** Case class for command line variables with default values
     *
@@ -44,14 +44,8 @@ object TokenizeSentences {
     val tokenizedSentences : RDD[Tuple2[String, List[String]]] = inputfile.zipWithIndex.map( line => {
       val original_string = line._1 /* the original string as is on file */
       val id = line._2.toString /* the unique sentence id converted to string */
-      try {
-        val pipeline = textProcessingPipeline.createNLPPipeline() /* get an instance of the NLP pipeline */
-        val doc_lemmas : Tuple2[String, List[String]] =  /* call the tokenization function */
-          (id, textProcessingPipeline.plainTextToLemmas(original_string, stopWords, pipeline))
-        doc_lemmas /* return the original sentence annotated with tokens */
-      } catch {
-        case e: Exception => Tuple2(id, List.empty[String])
-      }
+      val token_list = textProcessingUtils.tokenizeSentence(original_string, stopWords)
+      (id, token_list)
     })
 
     tokenizedSentences.saveAsTextFile(params.output) /* write the output in plain text format */

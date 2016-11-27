@@ -17,19 +17,12 @@ object GenerateSentenceVectors {
     input: String = "TFIDF/DOCUMENTS_BIN",
     dictionary: String = "TFIDF/DICTIONARY_BIN",
 	  output: String = "VECTORIZED_SENTENCES",
-    stopwordsFile: Option[String] = None,
     binary: Boolean = false)
 
   private def doGenerate(params: Params) {
     val conf = new SparkConf().setAppName("GenerateSentenceVectors")
 
     val sc = new SparkContext(conf)
-
-    val stopWords = params.stopwordsFile match {
-      case Some(stopwordsFile) => sc.broadcast(scala.io.Source.fromFile(stopwordsFile)
-        .getLines().map(_.trim).toSet)
-      case None => sc.broadcast(Set.empty[String])
-    }
 
     /* (docid, Map((term_string, (term_raw_freq, term_id, term_occurrence_in_docs, term_tfidf)))) */
     val annotatedDocs : RDD[(String, Map[String, Tuple4[Long, Long, Long, Double]])] = sc.objectFile(params.input)
@@ -40,7 +33,7 @@ object GenerateSentenceVectors {
     val dictionary = sc.broadcast(dictionaryMap)
 
     val docVectors : RDD[(String, SparseVector)] = annotatedDocs.map(doc => {
-      val vector : SparseVector = termVectors.generateVector(doc._2, dictionary, stopWords)
+      val vector : SparseVector = termVectors.generateVector(doc._2, dictionary)
       (doc._1, vector)
     })
 
@@ -70,10 +63,6 @@ object GenerateSentenceVectors {
         .text(s"the destination directory for the output" +
           s"  default: ${defaultParams.output}")
         .action((x, c) => c.copy(output = x))
-      opt[String]("stopwordFile")
-        .text(s"filepath for a list of stopwords. Note: This must fit on a single machine." +
-          s"  default: ${defaultParams.stopwordsFile}")
-        .action((x, c) => c.copy(stopwordsFile = Option(x)))
       opt[Unit]("binary")
         .text(s"serialize objects in binary formats" +
           s"  default: ${defaultParams.output}")

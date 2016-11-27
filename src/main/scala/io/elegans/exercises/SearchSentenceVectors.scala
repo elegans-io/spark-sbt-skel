@@ -52,7 +52,7 @@ object SearchSentenceVectors {
     val query_tfidf_annotated_terms = tfIdf.getTfIDFAnnotatedVector(query_word_count, dictionary, num_of_documents)
 
     val query_vector : SparseVector = termVectors.generateVector(doc_tfifd_terms = query_tfidf_annotated_terms,
-      dictionary = dictionary, stopWords = stopWords)
+      dictionary = dictionary)
 
     val results = annotatedDocs.map(doc => {
       val cosine : Double = termVectors.cosineSimilarity(doc._2, query_vector)

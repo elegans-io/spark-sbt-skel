@@ -26,17 +26,14 @@ class TermVectors {
     *                        Map(<term_id> -> (<term_raw_freq>, <term_id>, <num_docs_with_terms>, <term_tfidf>))
     *  @param dictionary a broadcast variable with the complete dictionary of terms:
     *                    (term, (term_unique_id, num_docs_with_terms))
-    * @param stopWords a set with the stopword which will not be included in the vector
     * @return a SparseVector where each element represent a term and the value is the raw frequency weighted by
     *         the TF-IDF
     */
   def generateVector(doc_tfifd_terms: Map[String, Tuple4[Long, Long, Long, Double]],
-                             dictionary: Broadcast[Map[String, Tuple2[Long, Long]]],
-                             stopWords: Broadcast[Set[String]]
+                             dictionary: Broadcast[Map[String, Tuple2[Long, Long]]]
                             ): SparseVector = {
     val array_values : Seq[(Int, Double)] = doc_tfifd_terms.map(term => {
-      val term_id : Int = dictionary.value.filter(x => ! stopWords.value.contains(x._1))
-        .getOrElse(term._1, (-1: Long, -1: Long))._1.toInt
+      val term_id : Int = dictionary.value.getOrElse(term._1, (-1: Long, -1: Long))._1.toInt
       val weight : Double = term._2._4
       (term_id, weight)
     }).filter(_._1 != -1).toSeq

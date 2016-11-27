@@ -17,15 +17,12 @@ object GenerateSentenceVectors {
     input: String = "TFIDF/DOCUMENTS_BIN",
     dictionary: String = "TFIDF/DICTIONARY_BIN",
 	  output: String = "VECTORIZED_SENTENCES",
-    stopwordsFile: Option[String] = None,
     binary: Boolean = false)
 
   private def doGenerate(params: Params) {
     val conf = new SparkConf().setAppName("GenerateSentenceVectors")
 
     val sc = new SparkContext(conf)
-
-    //TODO: load stopwords
 
     //TODO: load binary object with tokenized documents with TFIDF annotations (AnnotateWithTFIDF)
 
@@ -62,10 +59,6 @@ object GenerateSentenceVectors {
         .text(s"the destination directory for the output" +
           s"  default: ${defaultParams.output}")
         .action((x, c) => c.copy(output = x))
-      opt[String]("stopwordFile")
-        .text(s"filepath for a list of stopwords. Note: This must fit on a single machine." +
-          s"  default: ${defaultParams.stopwordsFile}")
-        .action((x, c) => c.copy(stopwordsFile = Option(x)))
       opt[Unit]("binary")
         .text(s"serialize objects in binary formats" +
           s"  default: ${defaultParams.output}")

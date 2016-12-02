@@ -45,6 +45,6 @@ sbt assembly
 ### run the program using the fat jar
 
 ```bash
-spark-submit --driver-memory 8g --class io.elegans.exercises.TokenizeSentences ./target/scala-2.11/exercises-assembly-0.1.jar  --help
+spark-submit --class io.elegans.exercises.TokenizeSentences ./target/scala-2.11/exercises-assembly-0.1.jar  --help
 ```
 

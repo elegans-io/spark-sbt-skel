@@ -15,7 +15,7 @@ object AnnotateWithTFIDF {
 
   private case class Params(
     input: String = "sentences.txt",
-	  output: String = "TOKENIZED_SENTENCES",
+	  output: String = "TFIDF_ANNOTATED_SENTENCES",
     binary: Boolean = false,
     stopwordsFile: Option[String] = None)
 
@@ -48,12 +48,15 @@ object AnnotateWithTFIDF {
     })
 
     /* list of terms with id and occurrence in documents (term, (term_id, occurrence)) */
-    val wordOccurrenceInDocs : RDD[Tuple2[String, Tuple2[Long, Long]]] = wordsRawFreqInDocuments.map(_._2)
-      .flatMap(s => s.map(x => (x._1, 1 : Long))) // apply a function (like map) then flatten
-      .reduceByKey((a, b) => {a + b}).sortByKey(ascending = true).zipWithIndex.map(x => {(x._1._1, (x._2, x._1._2))})
+    val wordOccurrenceInDocs : RDD[Tuple2[String, Tuple2[Long, Long]]] =
+      wordsRawFreqInDocuments.map(_._2)
+        .flatMap(s => s.map(x => (x._1, 1 : Long))) // apply a function (like map) then flatten
+        .reduceByKey((a, b) => {a + b}).sortByKey(ascending = true)
+        .zipWithIndex.map(x => {(x._1._1, (x._2, x._1._2))})
 
     /* broadcast the dictionary */
-    val dictionary_map : Map[String, Tuple2[Long, Long]] = wordOccurrenceInDocs.collectAsMap().toMap
+    val dictionary_map : Map[String, Tuple2[Long, Long]] = wordOccurrenceInDocs
+      .collectAsMap().toMap
     val dictionary = sc.broadcast(dictionary_map)
     val dictionary_size = dictionary_map.size
 
@@ -62,10 +65,13 @@ object AnnotateWithTFIDF {
 
     /* annotate documents with tf-idf
       in: (doc_id, frequencies_per_token)
-      out: (docid, Map(term_string, (term_raw_freq, term_id, term_occurrence_in_docs, term_tfidf)))
+      out: (docid, Map(term_string,
+                (term_raw_freq, term_id, term_occurrence_in_docs, term_tfidf))
+            )
     */
     val tfidAnnotatedDocuments = wordsRawFreqInDocuments.mapValues(annotations => {
-      val query_tfidf_annotated_terms = tfIdf.getTfIDFAnnotatedVector(annotations.toMap, dictionary, num_of_documents)
+      val query_tfidf_annotated_terms =
+        tfIdf.getTfIDFAnnotatedVector(annotations.toMap, dictionary, num_of_documents)
       query_tfidf_annotated_terms
     })
 
@@ -99,7 +105,7 @@ object AnnotateWithTFIDF {
         .action((x, c) => c.copy(output = x))
       opt[Unit]("binary")
         .text(s"serialize objects in binary formats" +
-          s"  default: ${defaultParams.output}")
+          s"  default: ${defaultParams.binary}")
         .action((x, c) => c.copy(binary = true))
       opt[String]("stopwordFile")
         .text(s"filepath for a list of stopwords. Note: This must fit on a single machine." +

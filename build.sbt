@@ -4,24 +4,24 @@ name := "exercises"
 
 version := "0.1"
 
+
+name := "SparkSbtSkel"
 organization := "io.elegans"
+maintainer := "angelo.leto@elegans.io"
 
-scalaVersion := "2.11.8"
+crossScalaVersions := Seq("2.12.10")
 
-resolvers ++= Seq("Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
+resolvers ++= Seq("Typesafe Repository" at "https://repo.typesafe.com/typesafe/releases/",
                   Resolver.bintrayRepo("hseeberger", "maven"))
 
 libraryDependencies ++= Seq(
-	"org.apache.spark" %% "spark-core" % "2.0.1" % "provided",
-	"org.apache.spark" %% "spark-mllib" % "2.0.1" % "provided",
-	"org.elasticsearch" % "elasticsearch-spark_2.11" % "2.4.0",
-	"edu.stanford.nlp" % "stanford-corenlp" % "3.6.0",
-	"edu.stanford.nlp" % "stanford-corenlp" % "3.6.0" classifier "models",
-	"com.github.scopt" %% "scopt" % "3.5.0"
+	"org.apache.spark" %% "spark-core" % "2.4.5" % "provided",
+	"org.apache.spark" %% "spark-mllib" % "2.4.5" % "provided",
+	"org.elasticsearch" % "elasticsearch-hadoop" % "7.6.0",
+	"edu.stanford.nlp" % "stanford-corenlp" % "3.9.2",
+	"edu.stanford.nlp" % "stanford-corenlp" % "3.9.0" classifier "models",
+	"com.github.scopt" %% "scopt" % "3.7.0"
 )
-
-
-SparkSubmit.settings
 
 enablePlugins(JavaServerAppPackaging)
 
